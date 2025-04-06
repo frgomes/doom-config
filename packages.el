@@ -57,3 +57,7 @@
 ;; Add support for Earthfile mode
 ;; https://github.com/earthly/earthly-emacs
 (package! earthfile-mode)
+
+;; Add support for aideremacs
+;; https://github.com/MatthewZMD/aidermacs
+(package! aidermacs)

@@ -94,3 +94,15 @@
                      :host "127.0.0.1:11434"
                      :stream t
                      :models '("dolphin-llama3:latest"))))
+
+
+;; integrate with aider https://github.com/MatthewZMD/aidermacs
+(use-package! aideremacs
+  :bind (("C-c a" . aidermacs-transient-menu))
+  :config
+    (aidermacs-setup-minor-mode)
+  :custom
+    (aidermacs-use-architect-mode t)
+    (aidermacs-architect-model "ollama/qwen2.5-coder:1.5b-instruct")
+    (aidermacs-editor-model    "ollama/qwen2.5-coder:1.5b-instruct")
+  )
