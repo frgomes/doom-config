@@ -50,14 +50,22 @@
 ;; (unpin! t)
 
 
-;; Add support of Ollama LLM
-(package! gptel)
+;;;; Add support for unicode fonts
+(package! unicode-fonts)
 
 
-;; Add support for Earthfile mode
-;; https://github.com/earthly/earthly-emacs
+;;;; Add support for Earthfile mode
+;;;; https://github.com/earthly/earthly-emacs
 (package! earthfile-mode)
 
-;; Add support for aideremacs
-;; https://github.com/MatthewZMD/aidermacs
+
+;;;; Add support of Ollama LLM
+;;(package! gptel)
+
+;;;; Add support for aideremacs
+;;;; https://github.com/MatthewZMD/aidermacs
 (package! aidermacs)
+
+;;;; Add support for GitHub Copilot
+(package! copilot
+  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))

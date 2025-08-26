@@ -76,6 +76,12 @@
 ;; they are implemented.
 
 
+(use-package! unicode-fonts
+  :config
+  (unicode-fonts-setup))
+(set-fontset-font t 'unicode "Noto Color Emoji" nil 'append)
+
+
 ;; Metals requires Java17 but user projects may require older versions of Java.
 ;; More info: https://github.com/scalameta/metals/issues/6952
 ;; Below we configure Metals globally so that it assumes that Java11 is a good choice
@@ -85,24 +91,31 @@
   (setq lsp-metals-java-home "~/tools/jdk-11")) ;; this is a symlink to the actual JDK
 
 
-;; playing with Ollama LLM
-(use-package! gptel
-  :config
-    (setq
-     gptel-model   "dolphin-llama3:latest"
-     gptel-backend (gptel-make-ollama "Ollama"
-                     :host "127.0.0.1:11434"
-                     :stream t
-                     :models '("dolphin-llama3:latest"))))
 
+(after! aider
+  ;; Set the backend to use comint, which is built-in to Emacs.
+  (setq aidermacs-backend 'comint))
 
-;; integrate with aider https://github.com/MatthewZMD/aidermacs
-(use-package! aideremacs
-  :bind (("C-c a" . aidermacs-transient-menu))
+;;;; integrate with aider https://github.com/MatthewZMD/aidermacs
+(use-package! aidermacs
+  :defer
+  :bind (("C-c c a" . aidermacs-transient-menu))
   :config
-    (aidermacs-setup-minor-mode)
+  (aidermacs-setup-minor-mode)
+  (setenv "OPENROUTER_API_KEY" (password-store-get "OpenRouter/rgomes.info@gmail.com"))
   :custom
-    (aidermacs-use-architect-mode t)
-    (aidermacs-architect-model "ollama/qwen2.5-coder:1.5b-instruct")
-    (aidermacs-editor-model    "ollama/qwen2.5-coder:1.5b-instruct")
-  )
+  (aidermacs-default-model "openrouter/deepseek/deepseek-r1:free")
+  (aidermacs-default-editor-model "openrouter/qwen/qwen3-coder:free")
+  (aidermacs-default-chat-mode 'code)
+  (aidermacs-use-architect-mode t)
+)
+
+;; accept completion from copilot and fallback to company
+(use-package! copilot
+  :defer
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)))
