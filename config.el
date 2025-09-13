@@ -91,11 +91,6 @@
   (setq lsp-metals-java-home "~/tools/jdk-11")) ;; this is a symlink to the actual JDK
 
 
-
-(after! aider
-  ;; Set the backend to use comint, which is built-in to Emacs.
-  (setq aidermacs-backend 'comint))
-
 ;;;; integrate with aider https://github.com/MatthewZMD/aidermacs
 (use-package! aidermacs
   :defer
@@ -104,6 +99,7 @@
   (aidermacs-setup-minor-mode)
   (setenv "OPENROUTER_API_KEY" (password-store-get "OpenRouter/rgomes.info@gmail.com"))
   :custom
+  (aidermacs-comint-mode)
   (aidermacs-default-model "openrouter/deepseek/deepseek-r1:free")
   (aidermacs-default-editor-model "openrouter/qwen/qwen3-coder:free")
   (aidermacs-default-chat-mode 'code)
