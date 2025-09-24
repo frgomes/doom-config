@@ -100,18 +100,18 @@
   (setenv "OPENROUTER_API_KEY" (password-store-get "OpenRouter/rgomes.info@gmail.com"))
   :custom
   (aidermacs-comint-mode)
-  (aidermacs-default-model "openrouter/deepseek/deepseek-r1:free")
-  (aidermacs-default-editor-model "openrouter/qwen/qwen3-coder:free")
+  ;; (aidermacs-default-model "openrouter/deepseek/deepseek-r1:free")
+  ;; (aidermacs-default-editor-model "openrouter/qwen/qwen3-coder:free")
   (aidermacs-default-chat-mode 'code)
   (aidermacs-use-architect-mode t)
 )
 
-;; accept completion from copilot and fallback to company
-(use-package! copilot
-  :defer
-  :hook (prog-mode . copilot-mode)
-  :bind (:map copilot-completion-map
-              ("<tab>" . 'copilot-accept-completion)
-              ("TAB" . 'copilot-accept-completion)
-              ("C-TAB" . 'copilot-accept-completion-by-word)
-              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+;;;; accept completion from copilot and fallback to company
+;;(use-package! copilot
+;;  :defer
+;;  :hook (prog-mode . copilot-mode)
+;;  :bind (:map copilot-completion-map
+;;              ("<tab>" . 'copilot-accept-completion)
+;;              ("TAB" . 'copilot-accept-completion)
+;;              ("C-TAB" . 'copilot-accept-completion-by-word)
+;;              ("C-<tab>" . 'copilot-accept-completion-by-word)))
