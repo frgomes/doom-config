@@ -106,7 +106,7 @@
        ;;ein               ; tame Jupyter notebooks with emacs
        (eval +overlay)     ; run code, run (also, repls)
        lookup              ; navigate your code and its documentation
-       lsp                 ; M-x vscode
+       (lsp +eglot)        ; M-x vscode
        magit               ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
        pass                ; password manager for nerds
@@ -152,9 +152,11 @@
        ;;hy                ; readability of scheme w/ speed of python
        ;;idris             ; a language you can depend on
        json                ; At least it ain't XML
-       (java +lsp)         ; the poster child for carpal tunnel syndrome
-       javascript          ; all(hope(abandon(ye(who(enter(here))))))
-       typescript          ; there's still some hope
+       (java +lsp +tree-sitter) ; the poster child for carpal tunnel syndrome
+       ;;javascript          ; all(hope(abandon(ye(who(enter(here))))))
+       ;;typescript          ; there's still some hope
+       (javascript +lsp +tree-sitter)
+       (typescript +lsp +tree-sitter)
        ;;julia             ; a better, faster MATLAB
        kotlin              ; a better, slicker Java(Script)
        latex               ; writing papers in Emacs has never been so fun
@@ -176,15 +178,15 @@
        rest                ; Emacs as a REST client
        rst                 ; ReST in peace
        ;;(ruby +rails)     ; 1.step {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
-       (rust +lsp)         ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
-       (scala +lsp)        ; java, but good
+       (rust +lsp +tree-sitter)  ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
+       (scala +lsp +tree-sitter) ; java, but good
        (scheme +guile)     ; a fully conniving family of lisps
        sh                  ; she sells {ba,z,fi}sh shells on the C xor
        ;;sml
        ;;solidity          ; do you need a blockchain? No.
        ;;swift             ; who asked for emoji variables?
        ;;terra             ; Earth and Moon in alignment for performance.
-       (web +html +css +lsp)
+       (web +html +css +lsp +tree-sitter)
        yaml              ; JSON, but readable
        ;;zig               ; C, but simpler
 
