@@ -1,0 +1,25 @@
+*.elc
+*.el~
+.DS_Store
+\#*\#
+/.emacs.d/
+/.local/
+ straight/
+etc/
+var/
+log/
+
+# Secret configuration file
+secret.el
+
+# Org mode files with sensitive data
+org/contacts/ebdb
+org/calendars/*.org
+org/gtd/*.org
+org/roam/
+org/mindmaps/
+
+# Temporary files
+*.tmp
+*.bak
+*~
