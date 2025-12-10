@@ -56,7 +56,7 @@
 
 ;;;; Add support for Earthfile mode
 ;;;; https://github.com/earthly/earthly-emacs
-(package! earthfile-mode)
+;;(package! earthfile-mode)
 
 
 ;;;; Add support of Ollama LLM
@@ -64,8 +64,22 @@
 
 ;;;; Add support for aideremacs
 ;;;; https://github.com/MatthewZMD/aidermacs
-(package! aidermacs)
+;;(package! aidermacs)
 
-;;;; Add support for GitHub Copilot
-;;(package! copilot
-;;  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
+
+;;;; https://github.com/manzaltu/claude-code-ide.el
+(package! claude-code-ide
+  :recipe (:host github :repo "manzaltu/claude-code-ide.el"))
+
+;;;; Contacts Management (CardDAV)
+(package! org-vcard)  ; vCard import/export for org-contacts
+(package! ebdb)       ; Enhanced contact database (modern BBDB)
+
+;;;; Calendar Management (CalDAV)
+(package! org-caldav)  ; CalDAV synchronization for org-mode
+
+;;;; Kanban & GTD
+(package! org-kanban)  ; Kanban boards in org-mode
+
+;;;; Mind Mapping
+(package! org-mind-map)  ; Mind maps from org-mode files

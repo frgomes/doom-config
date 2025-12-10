@@ -40,7 +40,7 @@
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
+(setq org-directory "~/Documents/org/")
 
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
@@ -92,26 +92,33 @@
 
 
 ;;;; integrate with aider https://github.com/MatthewZMD/aidermacs
-(use-package! aidermacs
-  :defer
-  :bind (("C-c c a" . aidermacs-transient-menu))
-  :config
-  (aidermacs-setup-minor-mode)
-  (setenv "OPENROUTER_API_KEY" (password-store-get "OpenRouter/rgomes.info@gmail.com"))
-  :custom
-  (aidermacs-comint-mode)
-  ;; (aidermacs-default-model "openrouter/deepseek/deepseek-r1:free")
-  ;; (aidermacs-default-editor-model "openrouter/qwen/qwen3-coder:free")
-  (aidermacs-default-chat-mode 'code)
-  (aidermacs-use-architect-mode t)
-)
-
-;;;; accept completion from copilot and fallback to company
-;;(use-package! copilot
+;;(use-package! aidermacs
 ;;  :defer
-;;  :hook (prog-mode . copilot-mode)
-;;  :bind (:map copilot-completion-map
-;;              ("<tab>" . 'copilot-accept-completion)
-;;              ("TAB" . 'copilot-accept-completion)
-;;              ("C-TAB" . 'copilot-accept-completion-by-word)
-;;              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+;;  :bind (("C-c c a" . aidermacs-transient-menu))
+;;  :config
+;;  (aidermacs-setup-minor-mode)
+;;  ;; (setenv "OPENAI_API_KEY" (password-store-get "z.ai/rgomes"))
+;;  :custom
+;;  ;; (aidermacs-comint-mode)
+;;  ;; (aidermacs-default-model "openrouter/deepseek/deepseek-r1:free")
+;;  ;; (aidermacs-default-editor-model "openrouter/qwen/qwen3-coder:free")
+;;  (aidermacs-default-chat-mode 'code)
+;;  (aidermacs-use-architect-mode t)
+;;)
+
+
+(use-package! claude-code-ide
+  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+  :config
+  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
+
+;;; Second Brain Configuration
+;; Load secret configuration (contains credentials)
+(when (file-exists-p! "secret.el" doom-user-dir)
+  (load! "secret"))
+
+;; Load module configurations
+(load! "modules/contacts/config")
+(load! "modules/calendar/config")
+(load! "modules/kanban/config")
+(load! "modules/mindmap/config")
