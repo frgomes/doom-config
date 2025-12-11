@@ -1,20 +1,22 @@
 # Emacs Second Brain Complete Guide
 
-This comprehensive guide explains how to use your Emacs Second Brain system with contacts, calendar, GTD/kanban, and mind mapping capabilities.
+This comprehensive guide explains how to use your Emacs Second Brain system with org-roam knowledge management, contacts, calendar, GTD/kanban, and mind mapping capabilities.
 
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [Contacts Management](#contacts-management)
-3. [Calendar Management](#calendar-management)
-4. [Kanban and GTD Workflow](#kanban-and-gtd-workflow)
-5. [Mind Mapping](#mind-mapping)
-6. [Integration Workflows](#integration-workflows)
-7. [Keybindings Reference](#keybindings-reference)
-8. [Common Tasks & Solutions](#common-tasks--solutions)
+2. [Org-Roam: Your Knowledge Network](#org-roam-your-knowledge-network)
+3. [Contacts Management](#contacts-management)
+4. [Calendar Management](#calendar-management)
+5. [Kanban and GTD Workflow](#kanban-and-gtd-workflow)
+6. [Mind Mapping](#mind-mapping)
+7. [Integration Workflows](#integration-workflows)
+8. [Keybindings Reference](#keybindings-reference)
+9. [Common Tasks & Solutions](#common-tasks--solutions)
 
 ## Introduction
 
 Your Emacs Second Brain is an integrated productivity system built on org-mode that helps you:
+- **Build a knowledge network** with org-roam's bidirectional linking
 - Manage contacts and relationships
 - Organize your calendar and events
 - Track tasks and projects with GTD methodology
@@ -23,12 +25,174 @@ Your Emacs Second Brain is an integrated productivity system built on org-mode t
 ### System Architecture
 ```
 ~/Documents/org/
+├── roam/          # Org-roam knowledge base (NEW!)
+│   ├── dailies/   # Daily notes
+│   ├── refs/      # Reference notes
+│   ├── meetings/  # Meeting notes
+│   └── projects/  # Project notes
 ├── contacts/      # Contact database
 ├── calendars/     # Calendar events and sync
 ├── gtd/          # GTD workflow files
 ├── kanban/       # Kanban board visualizations
 ├── mindmaps/     # Generated mind maps
 └── projects/     # Project-specific files
+```
+
+## Org-Roam: Your Knowledge Network
+
+Org-roam is the central hub of your Second Brain, creating a web of interconnected notes that mirror how your brain actually thinks.
+
+### What is Org-Roam?
+
+Org-roam is a plain-text knowledge management system that:
+- Creates **bidirectional links** between notes
+- Automatically maintains **backlinks** (knows who's linking to you)
+- Provides a **graph view** of your knowledge
+- Integrates **daily notes** for journaling
+- Works entirely within org-mode
+
+### Core Concepts
+
+#### 1. Nodes
+Every file in org-roam is a "node" with:
+- A unique ID
+- A title
+- Links to other nodes
+- Tags for organization
+
+#### 2. Links
+Create connections between notes:
+- `[[id:node-id][Link Text]]` - Link to another note
+- Automatic backlinks created by org-roam
+- Visual connections in graph view
+
+#### 3. Daily Notes
+Time-based notes for:
+- Daily journaling
+- Meeting logs
+- Task planning
+- Quick captures
+
+### Getting Started with Org-Roam
+
+#### Creating Your First Notes
+
+1. **Create a daily note**: Press `C-c n t`
+2. **Create a permanent note**: Press `C-c n f`, type a title, press Enter
+3. **Link notes**: Press `C-c n i` while editing, search for a note
+4. **View connections**: Press `C-c n b` to see backlinks, `C-c n g` for graph
+
+#### Note Templates
+
+**Default Note** (`C-c n c` → `d`):
+```org
+#+title: Your Note Title
+
+* Main idea
+
+* Supporting points
+- Point 1
+- Point 2
+
+* Related concepts
+- Link: [[id:some-id][Related note]]
+```
+
+**Reference Note** (`C-c n c` → `r`):
+```org
+#+title: Reference Title
+#+filetags: reference
+
+**Source**
+Author/URL/Book details
+
+**Key Points**
+- Important takeaway 1
+- Important takeaway 2
+
+**Quotes**
+"Relevant quote..."
+
+**Related**
+- [[id:concept-id][Related concept]]
+```
+
+**Meeting Note** (`C-c n c` → `m`):
+```org
+#+title: Meeting Title - YYYY-MM-DD
+#+filetags: meeting
+
+**Attendees**
+- Person 1
+- Person 2
+
+**Agenda**
+1. Topic 1
+2. Topic 2
+
+**Notes**
+- Discussion points
+- Decisions made
+
+**Action Items**
+- [ ] Task for person 1
+- [ ] Task for person 2
+
+**Next Meeting**
+Date and time
+```
+
+**Project Note** (`C-c n c` → `p`):
+```org
+#+title: Project Name
+#+filetags: project active
+
+**Overview**
+Brief project description
+
+**Goals**
+- [ ] Goal 1
+- [ ] Goal 2
+
+**Tasks**
+- [ ] Initial task
+- [ ] Next step
+
+**Resources**
+- [[id:resource1][Reference 1]]
+- [[id:tool1][Tool needed]]
+
+**Timeline**
+- Start: YYYY-MM-DD
+- Deadline: YYYY-MM-DD
+```
+
+#### Advanced Org-Roam Features
+
+**Aliases**: Add alternative names for notes (`C-c n a`)
+- Useful for acronyms, alternative spellings
+
+**Tags**: Organize notes with `#+filetags: project active urgent`
+- Filter in node-find with `tag:project`
+
+**Daily Workflow**:
+```org
+#+title: 2024-12-11
+
+* Today's Focus
+- [ ] Important task 1
+- [ ] Important task 2
+
+* Schedule
+- 09:00 Team meeting
+- 14:00 Client call
+
+* Notes
+- Quick thoughts and observations
+
+* Links
+- [[id:project-id][Related project]]
+- [[id:meeting-id][Meeting notes]]
 ```
 
 ## Contacts Management
@@ -439,26 +603,56 @@ The system automatically colors TODO states:
 
 ### Workflow 1: From Contact to Project
 1. **Create contact**: Add new client to contacts.org (`C-c c c`)
-2. **Capture initial request**: `C-c g c` → `p` (project)
-3. **Schedule kickoff**: Create calendar event (`C-c a c`) with contact link
-4. **Track in kanban**: Move through project phases (`C-c g k`)
-5. **Generate mind map**: Visualize project structure (`C-c m g`)
+2. **Create roam note**: `C-c n c` → `p` (project) for the client project
+3. **Capture initial request**: `C-c g c` → capture initial requirements
+4. **Schedule kickoff**: Create calendar event (`C-c a c`) with contact link
+5. **Track in kanban**: Move through project phases (`C-c g k`)
+6. **Generate mind map**: Visualize project structure (`C-c m g`)
 
 ### Workflow 2: Meeting Management
 1. **Schedule meeting**: Calendar entry with attendee links
-2. **Prepare agenda**: Create org-roam note with linked contacts (`C-c n f`)
-3. **Take notes**: Use meeting capture template (`C-c g c` → `m`)
-4. **Extract actions**: Process notes into GTD tasks
-5. **Follow up**: Track waiting items to completion
+2. **Create roam note**: `C-c n c` → `m` for meeting notes
+3. **Link to contacts**: `C-c n i` to link to attendee notes
+4. **Take notes**: During meeting in the roam note
+5. **Extract actions**: Process notes into GTD tasks (`C-c g c`)
+6. **Follow up**: Track waiting items to completion
 
-### Workflow 3: Daily Planning
-1. **Review calendar**: Check today's appointments
-2. **Check GTD agenda**: `C-c g a` for today's tasks
-3. **Review notes**: Check org-roam backlinks (`C-c n b`)
-4. **Capture new items**: Use inbox throughout day (`C-c g c`)
-5. **Evening review**: Process inbox and create tomorrow's note (`C-c n t`)
+### Workflow 3: Daily Planning with Org-Roam
+1. **Open daily note**: `C-c n t` for today's journal
+2. **Review calendar**: Check today's appointments
+3. **Check GTD agenda**: `C-c g a` for today's tasks
+4. **Review notes**: Check org-roam backlinks (`C-c n b`)
+5. **Capture new items**: Use inbox throughout day (`C-c g c`)
+6. **Evening review**: Process inbox and create tomorrow's note
+
+### Workflow 4: Knowledge Development
+1. **Learn something new**: Create reference note (`C-c n c` → `r`)
+2. **Connect to existing**: Link to related concepts (`C-c n i`)
+3. **Daily reflection**: Add insights to daily note
+4. **Weekly review**: Explore graph view (`C-c n g`) for new connections
+5. **Project application**: Link knowledge to active projects
+
+### Workflow 5: Project Lifecycle
+1. **Initiation**: Create project roam note with goals and timeline
+2. **Planning**: Generate mind map of project structure (`C-c m r`)
+3. **Tracking**: Link to GTD tasks and calendar milestones
+4. **Meetings**: Create meeting notes linked to project
+5. **Review**: Weekly reviews in daily notes linking to project
+6. **Completion**: Mark done, create lessons learned note
 
 ## Keybindings Reference
+
+### Org-Roam (Notes) (`C-c n`)
+| Key | Command | Description |
+|-----|---------|-------------|
+| `C-c n f` | `org-roam-node-find` | Find note |
+| `C-c n i` | `org-roam-node-insert` | Insert link to note |
+| `C-c n b` | `org-roam-buffer-toggle` | Toggle backlinks buffer |
+| `C-c n g` | `org-roam-graph` | Show graph view |
+| `C-c n d` | `org-roam-dailies-goto-date` | Go to daily note for date |
+| `C-c n t` | `org-roam-dailies-capture-today` | Today's daily note |
+| `C-c n c` | `org-roam-capture` | Quick capture to roam |
+| `C-c n a` | `org-roam-alias-add` | Add alias to note |
 
 ### Contacts (`C-c c`)
 | Key | Command | Description |
@@ -492,18 +686,6 @@ The system automatically colors TODO states:
 | `C-c m d` | Export to PDF | Create PDF document |
 | `C-c m o` | Open directory | View exported maps |
 | `C-c m r` | Generate from roam | Create mind map from org-roam node |
-
-### Org-Roam (Notes) (`C-c n`)
-| Key | Command | Description |
-|-----|---------|-------------|
-| `C-c n f` | `org-roam-node-find` | Find note |
-| `C-c n i` | `org-roam-node-insert` | Insert link to note |
-| `C-c n b` | `org-roam-buffer-toggle` | Toggle backlinks buffer |
-| `C-c n g` | `org-roam-graph` | Show graph view |
-| `C-c n d` | `org-roam-dailies-goto-date` | Go to daily note |
-| `C-c n t` | `org-roam-dailies-capture-today` | Today's daily note |
-| `C-c n c` | `org-roam-capture` | Quick capture to roam |
-| `C-c n a` | `org-roam-alias-add` | Add alias to note |
 
 ## Common Tasks & Solutions
 
@@ -548,6 +730,26 @@ Feature B can't start until A is done, integration after both.
 3. Monthly: Archive old projects
 4. Include EBDB database in backup
 
+### Org-Roam Troubleshooting
+
+#### Database Issues
+If nodes aren't showing:
+```bash
+M-x org-roam-db-build-cache
+```
+
+#### Missing Links
+If backlinks don't update:
+- Save the file
+- Wait a moment for indexing
+- Check buffer with `C-c n b`
+
+#### Slow Performance
+Large databases can be slow:
+- Archive old completed projects
+- Use tags to filter searches
+- Consider splitting very large notes
+
 ---
 
 ## Tips for Success
@@ -556,6 +758,7 @@ Feature B can't start until A is done, integration after both.
 2. **Daily habits**: Process inbox every day, even if just for 5 minutes
 3. **Weekly review**: Never skip the weekly GTD review
 4. **Keep it simple**: Don't over-organize; let the system grow with your needs
-5. **Regular maintenance**: Clean up old items, update contacts, sync regularly
+5. **Link everything**: Use org-roam to connect your knowledge
+6. **Regular maintenance**: Clean up old items, update contacts, sync regularly
 
-Remember: The goal is to have a trusted system that captures everything so your brain can focus on creative work, not on remembering!
+Remember: The goal is to have a trusted system that captures everything so your brain can focus on creative work, not on remembering! And with org-roam, you're building a true second brain that grows and adapts with you.
