@@ -62,7 +62,7 @@
                     '((:name "External Dependencies"
                        :tag "external")
                       (:name "Scheduled"
-                       :tag "scheduled")))))))))
+                       :tag "scheduled"))))))))))
 
 ;; GTD capture templates
 (after! org-capture
