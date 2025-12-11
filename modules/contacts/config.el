@@ -43,10 +43,8 @@
   (setq org-contacts-email-link-description 'email)
   (setq org-contacts-icon-property "ICON"))
 
-;; Keybindings for contacts
-(map! :leader
-      (:prefix ("c" . "contacts")
-       :desc "Import vCard" "i" #'org-vcard-import
-       :desc "Export vCard" "e" #'org-vcard-export
-       :desc "Create contact" "c" #'org-capture-contacts
-       :desc "Search contacts" "s" #'ebdb))
+;; Keybindings for contacts (C-c c prefix)
+(global-set-key (kbd "C-c c c") #'org-capture-contacts)  ; Create contact
+(global-set-key (kbd "C-c c i") #'org-vcard-import)      ; Import vCard
+(global-set-key (kbd "C-c c e") #'org-vcard-export)      ; Export vCard
+(global-set-key (kbd "C-c c s") #'ebdb)                  ; Search contacts

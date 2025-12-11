@@ -52,9 +52,7 @@
         (holiday-float 2 3 1 "Presidents' Day")
         (holiday-float 5 1 1 "Memorial Day")))
 
-;; Keybindings for calendar
-(map! :leader
-      (:prefix ("c" . "calendar")
-       :desc "Calendar" "c" #'calendar
-       :desc "Sync CalDAV" "s" #'caldav-sync
-       :desc "Org Calendar" "o" #'org-calendar-view))
+;; Keybindings for calendar (C-c a prefix for agenda/calendar)
+(global-set-key (kbd "C-c a c") #'calendar)              ; Calendar view
+(global-set-key (kbd "C-c a s") #'caldav-sync)           ; CalDAV sync
+(global-set-key (kbd "C-c a o") #'org-calendar-view)     ; Org calendar

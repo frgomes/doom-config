@@ -122,3 +122,14 @@
 (load! "modules/calendar/config")
 (load! "modules/kanban/config")
 (load! "modules/mindmap/config")
+(load! "modules/roam/config")
+
+;; Org-roam keybindings (C-c n prefix)
+(global-set-key (kbd "C-c n f") 'org-roam-node-find)      ; Find node
+(global-set-key (kbd "C-c n i") 'org-roam-node-insert)    ; Insert link
+(global-set-key (kbd "C-c n b") 'org-roam-buffer-toggle)  ; Toggle backlinks
+(global-set-key (kbd "C-c n g") 'org-roam-graph)          ; Graph view
+(global-set-key (kbd "C-c n a") 'org-roam-alias-add)      ; Add alias
+(global-set-key (kbd "C-c n d") 'org-roam-dailies-goto-date)       ; Daily note
+(global-set-key (kbd "C-c n t") 'org-roam-dailies-capture-today)   ; Today's note
+(global-set-key (kbd "C-c n c") 'org-roam-capture)         ; Quick capture

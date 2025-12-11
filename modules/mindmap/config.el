@@ -39,14 +39,25 @@
   (message "On Ubuntu/Debian: sudo apt install graphviz")
   (message "On macOS: brew install graphviz"))
 
-;; Keybindings for mind mapping
-(map! :leader
-      (:prefix ("m" . "mindmap")
-       :desc "Generate Mind Map" "g" #'org-mind-map
-       :desc "Export to PNG" "p" #'org-mind-map-export-png
-       :desc "Export to SVG" "s" #'org-mind-map-export-svg
-       :desc "Export to PDF" "d" #'org-mind-map-export-pdf
-       :desc "Open Mindmaps Dir" "o" (lambda () (interactive) (find-file "~/Documents/org/mindmaps/"))))
+;; Keybindings for mind mapping (C-c m prefix)
+(global-set-key (kbd "C-c m g") #'org-mind-map)                   ; Generate
+(global-set-key (kbd "C-c m p") #'org-mind-map-export-png)        ; Export PNG
+(global-set-key (kbd "C-c m s") #'org-mind-map-export-svg)        ; Export SVG
+(global-set-key (kbd "C-c m d") #'org-mind-map-export-pdf)        ; Export PDF
+(global-set-key (kbd "C-c m o") (lambda () (interactive)
+                                   (find-file "~/Documents/org/mindmaps/"))) ; Open dir
+
+;; Add function to generate mind map from current roam node
+(defun org-roam-mind-map-from-node ()
+  "Generate mind map from current org-roam node."
+  (interactive)
+  (let* ((node-id (org-id-get-create))
+         (node-title (org-roam-get-title node-id t)))
+    (org-mind-map-write-file node-id nil)
+    (message "Mind map generated for: %s" node-title)))
+
+;; Keybinding for roam mind maps
+(global-set-key (kbd "C-c m r") #'org-roam-mind-map-from-node)  ; Generate from roam
 
 ;; Hook for mind map generation
 (add-hook! 'org-mode-hook
@@ -54,3 +65,8 @@
     "Add mind map keywords"
     (setq-local org-mind-map--default-keywords
                 '("PROJECT" "IDEA" "NOTE" "TASK" "GOAL" "CONCEPT"))))
+
+;; Hook to update roam when mind maps are generated
+(add-hook! 'org-mind-map-before-export-hook
+  (when (eq major-mode 'org-mode)
+    (org-roam-update)))

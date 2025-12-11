@@ -83,3 +83,7 @@
 
 ;;;; Mind Mapping
 (package! org-mind-map)  ; Mind maps from org-mode files
+
+;;;; Org-Roam for knowledge management
+(package! org-roam)
+(package! org-roam-ui)  ; Web UI for graph visualization

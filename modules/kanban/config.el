@@ -96,10 +96,9 @@
 (setq org-agenda-include-deadlines t)
 (setq org-deadline-warning-days 14)
 
-;; Keybindings for GTD
-(map! :leader
-      (:prefix ("g" . "gtd")
-       :desc "GTD Agenda" "g" #'org-agenda
-       :desc "Process Inbox" "i" #'org-agenda-list
-       :desc "Capture" "c" #'org-capture
-       :desc "Kanban View" "k" #'org-kanban))
+;; Keybindings for GTD/Kanban (C-c g prefix)
+(global-set-key (kbd "C-c g a") #'org-agenda)            ; GTD agenda
+(global-set-key (kbd "C-c g i") (lambda () (interactive)
+                                   (find-file "~/Documents/org/gtd/inbox.org")))
+(global-set-key (kbd "C-c g c") #'org-capture)           ; Quick capture
+(global-set-key (kbd "C-c g k") #'org-kanban)            ; Kanban view
