@@ -39,7 +39,7 @@
        ;;doom-quit
        (emoji +unicode)
        hl-todo
-       ;;hydra
+       hydra
        ;;indent-guides
        ;;ligatures
        minimap

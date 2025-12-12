@@ -123,6 +123,7 @@
 (load! "modules/kanban/config")
 (load! "modules/mindmap/config")
 (load! "modules/roam/config")
+(load! "modules/hydra/config")  ; NEW: Hydra menu system
 
 ;; Org-roam keybindings (C-c n prefix)
 (global-set-key (kbd "C-c n f") 'org-roam-node-find)      ; Find node

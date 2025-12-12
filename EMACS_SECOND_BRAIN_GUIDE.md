@@ -22,6 +22,65 @@ Your Emacs Second Brain is an integrated productivity system built on org-mode t
 - Track tasks and projects with GTD methodology
 - Visualize ideas and projects with mind maps
 
+## Quick Access with Hydra Menu
+
+The fastest way to access all Second Brain functions is through the hydra menu:
+
+**Launch**: Press `C-c b`
+
+This opens an interactive menu where you can:
+- Press single keys to execute functions
+- See all available options at a glance
+- Navigate between categories
+
+### Hydra Menu Keybindings
+
+When the hydra menu is open (after pressing `C-c b`):
+
+#### Org-Roam (Notes)
+- `n f` - Find node
+- `n i` - Insert link
+- `n b` - Toggle backlinks
+- `n g` - Graph view
+- `n a` - Add alias
+- `n d` - Daily note (go to date)
+- `n t` - Today's note
+- `n c` - Quick capture
+
+#### Contacts
+- `c c` - Create new contact
+- `c i` - Import vCard
+- `c e` - Export vCard
+- `c s` - Search contacts
+
+#### Calendar
+- `a c` - Calendar view
+- `a s` - Sync CalDAV
+- `a o` - Org calendar
+
+#### GTD/Kanban
+- `g a` - GTD agenda
+- `g i` - Open inbox
+- `g c` - Capture
+- `g k` - Kanban view
+
+#### Mind Maps
+- `m g` - Generate mind map
+- `m p` - Export to PNG
+- `m s` - Export to SVG
+- `m d` - Export to PDF
+- `m o` - Open mindmaps directory
+- `m r` - Generate from roam node
+
+#### Quit
+- `q` - Quit hydra menu
+
+**Why use Hydra?**
+- **Memorable**: Only need to remember `C-c b`
+- **Discoverable**: See all options in one place
+- **Fast**: Single key presses for common actions
+- **Visual**: Organized menu with clear sections
+
 ### System Architecture
 ```
 ~/Documents/org/
@@ -642,6 +701,11 @@ The system automatically colors TODO states:
 
 ## Keybindings Reference
 
+### Quick Access
+| Key | Description |
+|-----|-------------|
+| `C-c b` | Open Second Brain hydra menu (RECOMMENDED) |
+
 ### Org-Roam (Notes) (`C-c n`)
 | Key | Command | Description |
 |-----|---------|-------------|
@@ -675,7 +739,7 @@ The system automatically colors TODO states:
 | `C-c g a` | `org-agenda` | Open GTD agenda |
 | `C-c g c` | `org-capture` | Quick capture |
 | `C-c g i` | Find inbox | Go to inbox file |
-| `C-c g k` | `org-kanban` | Open kanban view |
+| `C-c g k` | Open kanban | Open kanban.org with org-kanban-mode |
 
 ### Mind Mapping (`C-c m`)
 | Key | Command | Description |
