@@ -1,218 +1,99 @@
 ;;; init.el -*- lexical-binding: t; -*-
 
-;; This file controls what Doom modules are enabled and what order they load
-;; in. Remember to run 'doom sync' after modifying it!
-
-;; NOTE Press 'SPC h d h' (or 'C-h d h' for non-vim users) to access Doom's
-;;      documentation. There you'll find a link to Doom's Module Index where all
-;;      of our modules are listed, including what flags they support.
-
-;; NOTE Move your cursor over a module's name (or its flags) and press 'K' (or
-;;      'C-c c k' for non-vim users) to view its documentation. This works on
-;;      flags as well (those symbols that start with a plus).
-;;
-;;      Alternatively, press 'gd' (or 'C-c c d') on a module to browse its
-;;      directory (for easy access to its source code).
-
 ;; Dark screen as soon as possible
 (add-to-list 'default-frame-alist '(background-color . "#202020"))
 (add-to-list 'default-frame-alist '(foreground-color . "#FFFFFF"))
 
 (doom! :input
-       ;;bidi
-       ;;chinese
-       ;;japanese
        ;;layout
 
        :completion
-       company
-       ;;(corfu +orderless)
-       ;;helm
-       ;;ido
-       ivy
-       ;;vertico
+       company           ; The standard for auto-completion
+       (vertico          ; Modern completion UI (Replaces Ivy)
+        +icons           ; Better visual feedback
+        +nerd-icons)     ; Best for Plasma 6 / Wayland stability
 
        :ui
-       ;;deft
-       doom
-       ;;doom-dashboard
-       ;;doom-quit
-       (emoji +unicode)
-       hl-todo
-       hydra
-       ;;indent-guides
-       ;;ligatures
-       minimap
-       modeline
-       ;;nav-flash
-       ;;neotree
-       ophints
-       (popup +defaults)
-       ;;tabs
-
-       ;;ATTENTION: remember to run command: nerd-fonts-install-icons when first start Emacs after doom sync
-       (treemacs +nerd-icons)
-
-       unicode
-       (vc-gutter +pretty)
-       vi-tilde-fringe
-       ;;window-select
-       workspaces
-       ;;zen
+       doom              ; Standard Doom look
+       (emoji +unicode)  ; Required for modern text processing
+       hl-todo           ; Highlight TODO/FIXME in your code
+       hydra             ; Great for complex keybinding chains
+       minimap           ; Useful for navigating large data scripts
+       modeline          ; Lean bottom bar
+       ophints           ; Operator hints
+       (popup +defaults) ; Smart window management
+       (treemacs +nerd-icons) ; Modern sidebar with Nerd Font support
+       unicode           ; Display math/foreign symbols correctly
+       (vc-gutter +pretty) ; Git status in the fringe
+       vi-tilde-fringe   ; Visual end-of-file indicators
+       workspaces        ; Keep Finance/AI projects separated
 
        :editor
-       ;;(evil +everywhere)
-       file-templates
-       fold
-       ;;(format +onsave)
-       ;;god
-       ;;lispy
-       multiple-cursors
-       ;;objed
-       ;;parinfer
-       ;;rotate-text
-       snippets
-       word-wrap
+       file-templates    ; Auto-populate new .py or .rs files
+       fold              ; Code folding for long data structures
+       multiple-cursors  ; Mass editing (replaces your manual binds)
+       snippets          ; Code expansion
+       word-wrap         ; Better for documentation/markdown
 
        :emacs
-       dired
-       electric
-       ;;ibuffer
-       undo
-       vc
+       dired             ; Powerful file manager
+       electric          ; Smart indentation
+       undo              ; Never lose your history
+       vc                ; Version control integration
 
        :term
-       ;;eshell
-       shell
-       ;;term
-       vterm
+       vterm             ; The fastest terminal for Linux/openSUSE
 
        :checkers
-       syntax
-       (spell +flyspell)
-       grammar
+       syntax            ; Flycheck for on-the-fly errors
+       (spell +flyspell) ; Spell checking
+       grammar           ; Writing assistance
 
        :tools
-       ;;ansible
-       ;;biblio
-       ;;collab
-       ;;debugger
-       ;;direnv
-       ;;docker
-       editorconfig
-       ;;ein
-       (eval +overlay)
-       lookup
-       (lsp +eglot)
-       magit
-       ;;make
-       pass
-       ;;pdf
-       ;;prodigy
-       ;;rgb
-       ;;taskrunner
-       ;;terraform
-       ;;tmux
-       tree-sitter
-       ;;upload
+       editorconfig      ; Standardize spacing across projects
+       (eval +overlay)   ; Run code snippets and see results in-line
+       lookup            ; SPC s ... (The engine for your search tools)
+       (lsp +eglot)      ; Lean LSP (Built-in to Emacs 29+, very stable)
+       magit             ; The best Git interface ever made
+       pass              ; Password management
+       tree-sitter       ; Modern, fast syntax highlighting
 
        :os
        (:if (featurep :system 'macos) macos)
-       ;;tty
 
        :lang
-       ;;agda
-       ;;beancount
-       ;;(cc +lsp +tree-sitter)
-       ;;clojure
-       ;;common-lisp
-       ;;coq
-       ;;crystal
-       ;;csharp
-       data
-       ;;(dart +flutter)
-       ;;dhall
-       ;;elixir
-       ;;elm
-       emacs-lisp
-       ;;erlang
-       ;;ess
-       ;;factor
-       ;;faust
-       ;;fortran
-       ;;fsharp
-       ;;fstar
-       ;;gdscript
-       ;;(go +lsp +tree-sitter)
-       ;;(graphql +lsp +tree-sitter)
-       ;;(haskell +lsp +tree-sitter)
-       ;;hy
-       ;;idris
-       json
+       data              ; CSV, XML, etc.
+       emacs-lisp        ; For editing this config
+       json              ; Essential for web and data APIs
        (java +lsp +tree-sitter)
        (javascript +lsp +tree-sitter)
        (typescript +lsp +tree-sitter)
-       ;;julia
-       kotlin
-       latex
-       ;;lean
-       ;;ledger
-       ;;lua
-       markdown
-       ;;nim
-       ;;nix
-       ;;ocaml
-       org
-       ;;php
-       ;;plantuml
-       ;;purescript
-       python
-       ;;qt
-       ;;racket
-       ;;raku
-       rest
-       rst
-       ;;(ruby +rails)
-       (rust +lsp +tree-sitter)
+       markdown          ; READMEs and documentation
+       (org +roam2)      ; For your "Critical Thinking" knowledge base
+       python            ; Your financial scripting environment
+       rest              ; Test HTTP APIs
+       (rust +lsp +tree-sitter) ; Your backtesting engine
        (scala +lsp +tree-sitter)
-       (scheme +guile)
-       sh
-       ;;sml
-       ;;solidity
-       ;;swift
-       ;;terra
+       sh                ; Shell scripting
        (web +html +css +lsp +tree-sitter)
-       yaml
-       ;;zig
-
-       :email
-       ;;(mu4e +org +gmail)
-       ;;notmuch
-       ;;(wanderlust +gmail)
-
-       :app
-       (calendar +gcal)
-       ;;emms
-       ;;everywhere
-       ;;irc
-       ;;(rss +org)
-       ;;twitter
+       yaml              ; Configuration files
 
        :config
-       ;;literate
        (default +bindings +smartparens))
 
-;; if you want to change prefix for lsp-mode keybindings.
-;(setq lsp-keymap-prefix "s-l")
+;; --- Custom Keybindings & Settings ---
 
+;; Scale text (useful for screen sharing or large monitors)
 (global-set-key (kbd "C-+") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
 
+;; Native Multiple Cursors Binds (Doom Way)
+;; The module already provides SPC e m, but these match your style:
 (cua-selection-mode t)
 (global-set-key (kbd "C-M-<return>") 'cua-rectangle-mark-mode)
-(global-set-key (kbd "C-` <return>") 'mc/edit-lines)
-(global-set-key (kbd "C-` <right>")  'mc/mark-next-like-this)
-(global-set-key (kbd "C-` <left>")   'mc/mark-previous-like-this)
-(global-set-key (kbd "C-` <return>") 'mc/mark-all-like-this)
-(global-set-key (kbd "C-` /")        'mc/mark-sgml-tag-pair)
-(global-set-key (kbd "C-` <SPC>")    'mc/vertical-align-with-spaces)
+
+
+;; --- Post-Installation Steps ---
+;; 1. Run 'doom sync' in your terminal.
+;; 2. Open Emacs and run 'M-x nerd-icons-install-fonts'.
+;; 3. Ensure 'ripgrep' is installed on openSUSE: 'sudo zypper in ripgrep'.

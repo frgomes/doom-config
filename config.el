@@ -1,136 +1,180 @@
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 
-;; Place your private configuration here! Remember, you do not need to run 'doom
-;; sync' after modifying this file!
+;; --- Identity ---
+;; --- Identity (Dynamic from Git) ---
+(setq user-full-name
+      (shell-command-to-string "git config --get user.name | tr -d '\\n'"))
 
+(setq user-mail-address
+      (shell-command-to-string "git config --get user.email | tr -d '\\n'"))
 
-;; Some functionality uses this to identify you, e.g. GPG configuration, email
-;; clients, file templates and snippets. It is optional.
-;; (setq user-full-name "John Doe"
-;;       user-mail-address "john@doe.com")
-
-;; Doom exposes five (optional) variables for controlling fonts in Doom:
-;;
-;; - `doom-font' -- the primary font to use
-;; - `doom-variable-pitch-font' -- a non-monospace font (where applicable)
-;; - `doom-big-font' -- used for `doom-big-font-mode'; use this for
-;;   presentations or streaming.
-;; - `doom-symbol-font' -- for symbols
-;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
-;;
-;; See 'C-h v doom-font' for documentation and more examples of what they
-;; accept. For example:
-;;
-;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
-;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
-;;
-;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
-;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
-;; refresh your font settings. If Emacs still can't find your font, it likely
-;; wasn't installed correctly. Font issues are rarely Doom issues!
-
-;; There are two ways to load a theme. Both assume the theme is installed and
-;; available. You can either set `doom-theme' or manually load a theme with the
-;; `load-theme' function. This is the default:
+;; --- UI & Fonts ---
 (setq doom-theme 'doom-one)
-
-;; This determines the style of line numbers in effect. If set to `nil', line
-;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
-;; If you use `org' and don't want your org files in the default location below,
-;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/Documents/org/")
-
-
-;; Whenever you reconfigure a package, make sure to wrap your config in an
-;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
-;;
-;;   (after! PACKAGE
-;;     (setq x y))
-;;
-;; The exceptions to this rule:
-;;
-;;   - Setting file/directory variables (like `org-directory')
-;;   - Setting variables which explicitly tell you to set them before their
-;;     package is loaded (see 'C-h v VARIABLE' to look up their documentation).
-;;   - Setting doom variables (which start with 'doom-' or '+').
-;;
-;; Here are some additional functions/macros that will help you configure Doom.
-;;
-;; - `load!' for loading external *.el files relative to this one
-;; - `use-package!' for configuring packages
-;; - `after!' for running code after a package has loaded
-;; - `add-load-path!' for adding directories to the `load-path', relative to
-;;   this file. Emacs searches the `load-path' when you load packages with
-;;   `require' or `use-package'.
-;; - `map!' for binding new keys
-;;
-;; To get information about any of these functions/macros, move the cursor over
-;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
-;; This will open documentation for it, including demos of how they are used.
-;; Alternatively, use `C-h o' to look up a symbol (functions, variables, faces,
-;; etc).
-;;
-;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
-;; they are implemented.
-
-
-(use-package! unicode-fonts
-  :config
+;; Standards for Plasma 6 (Using Nerd Fonts)
+;; Ensure you've run M-x nerd-icons-install-fonts
+(after! unicode-fonts
   (unicode-fonts-setup))
-(set-fontset-font t 'unicode "Noto Color Emoji" nil 'append)
 
+;; --- Diagrams and Charts ---
 
-;; Metals requires Java17 but user projects may require older versions of Java.
-;; More info: https://github.com/scalameta/metals/issues/6952
-;; Below we configure Metals globally so that it assumes that Java11 is a good choice
-;; for all projects. This is probaly a bad idea. I guess that a better choice would be
-;; retrieving the desired JDK version from every project, from its build.sbt. 
+;; This code below requires installation of Vega tools like this:
+;; pnpm add -g vega-lite resvg-cli
+(defun my/markdown-vega-view-png ()
+  "Extract the Vega/Vega-Lite code block at point, compile to PNG, and display it."
+  (interactive)
+  (let ((json-str nil)
+        (png-file (make-temp-file "emacs-vega-" nil ".png"))
+        (svg-file (make-temp-file "emacs-vega-" nil ".svg")))
+    
+    ;; 1. Context Detection via Text Properties
+    (cond
+     ;; Scenario A: Inside a Markdown buffer
+     ((derived-mode-p 'markdown-mode)
+      (if (markdown-code-block-at-point-p)
+          (let ((pos (point))
+                block-start block-end)
+            (save-excursion
+              ;; Find the beginning of the fenced block property region
+              (setq block-start (previous-single-property-change (1+ pos) 'face nil (point-min)))
+              ;; Find the end of the fenced block property region
+              (setq block-end (next-single-property-change pos 'face nil (point-max)))
+              
+              (when (and block-start block-end)
+                (goto-char block-start)
+                ;; If sitting on the opening backticks line, skip past it to inner JSON
+                (when (looking-at "^[ \t]*```")
+                  (forward-line 1)
+                  (setq block-start (point)))
+                
+                (goto-char block-end)
+                ;; If sitting on the closing backticks line, back up to clean line end
+                (beginning-of-line)
+                (when (looking-at "^[ \t]*
+```")
+                  (forward-line -1)
+                  (end-of-line)
+                  (setq block-end (point)))
+                
+                (setq json-str (buffer-substring-no-properties block-start block-end)))))
+        (user-error "Cursor is not pointing inside a code block")))
+     
+     ;; Scenario B: Fallback to pure JSON buffer logic
+     ((derived-mode-p 'json-mode)
+      (setq json-str (buffer-substring-no-properties (point-min) (point-max))))
+     
+     (t (user-error "Unsupported buffer environment mode")))
+
+    ;; 2. The Core Compilation Pipeline
+    (when (and json-str (not (string-empty-p (string-trim json-str))))
+      (with-temp-buffer
+        (insert json-str)
+        (shell-command-on-region (point-min) (point-max) "vl2svg" nil t)
+        (write-region (point-min) (point-max) svg-file nil 'silent))
+      
+      (shell-command (format "resvg-cli %s %s" 
+                             (shell-quote-argument svg-file) 
+                             (shell-quote-argument png-file)))
+      (delete-file svg-file)
+      
+      ;; 3. Native Buffer Presentation
+      (let ((buf (get-buffer-create "*Vega View*")))
+        (with-current-buffer buf
+          (read-only-mode -1)
+          (erase-buffer)
+          (let ((img (create-image png-file 'png nil)))
+            (insert-image img))
+          (read-only-mode 1))
+        (display-buffer buf)))))
+
+(after! json-mode
+  (map! :map json-mode-map
+        :localleader
+        :desc "View Vega Chart (PNG)" "v" #'my/markdown-vega-view-png))
+
+(after! markdown-mode
+  (map! :map markdown-mode-map
+        :localleader
+        :desc "View Embedded Vega (PNG)" "v" #'my/markdown-vega-view-png))
+
+;; --- Ripgrep (rg) Configuration ---
+;; Optimized for mass find/replace and code navigation
+(after! rg
+  (setq rg-command-line-flags '("--hidden" "--glob" "!.git/*"))
+  (setq rg-group-result t
+        rg-show-columns t
+        rg-ignore-case 'smart)
+  ;; Automatically save all buffers after a mass wgrep change
+  (setq wgrep-auto-save-buffer t))
+
+;; --- Language Specifics ---
+;; Java 11 symlink for Scala/Metals compatibility (openSUSE path)
 (after! scala
-  (setq lsp-metals-java-home "~/tools/jdk-11")) ;; this is a symlink to the actual JDK
+  (setq lsp-metals-java-home "~/tools/jdk-11"))
 
+;; AI Integration (Claude/Aider)
+(after! claude-code-ide
+  (setq claude-code-ide-model "claude-3-5-sonnet-latest"))
 
-;;;; integrate with aider https://github.com/MatthewZMD/aidermacs
-;;(use-package! aidermacs
-;;  :defer
-;;  :bind (("C-c c a" . aidermacs-transient-menu))
-;;  :config
-;;  (aidermacs-setup-minor-mode)
-;;  ;; (setenv "OPENAI_API_KEY" (password-store-get "z.ai/rgomes"))
-;;  :custom
-;;  ;; (aidermacs-comint-mode)
-;;  ;; (aidermacs-default-model "openrouter/deepseek/deepseek-r1:free")
-;;  ;; (aidermacs-default-editor-model "openrouter/qwen/qwen3-coder:free")
-;;  (aidermacs-default-chat-mode 'code)
-;;  (aidermacs-use-architect-mode t)
-;;)
+;; --- Second Brain (Org & Org-Roam) ---
+;; Recommendation: Separate trees for Agenda performance
+(setq org-directory "~/Documents/org/")
+(setq org-roam-directory (file-truename "~/Documents/roam/"))
 
+(after! org-roam
+  (setq org-roam-dailies-directory "daily/")
 
-(use-package! claude-code-ide
-  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
-  :config
-  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
+  ;; Agenda Logic: Only include active TODOs and Daily logs
+  ;; This prevents the UI from lagging as your Roam database grows.
+  (setq org-agenda-files
+        (list (expand-file-name "todo.org" org-directory)
+              (expand-file-name "daily/" org-roam-directory)))
 
-;;; Second Brain Configuration
-;; Load secret configuration (contains credentials)
+  ;; Optimized Capture Templates
+  (setq org-roam-capture-templates
+        '(("m" "main" plain "%?"
+           :if-new (file+head "main/${slug}.org" "#+title: ${title}\n")
+           :immediate-finish t :unnarrowed t)
+          ("c" "code" plain "%?"
+           :if-new (file+head "code/${title}.org" "#+title: ${title}\n")
+           :immediate-finish t :unnarrowed t)
+          ("p" "personal" plain "%?"
+           :if-new (file+head "personal/${slug}.org" "#+title: ${title}\n")
+           :unnarrowed t)))
+
+  (org-roam-db-autosync-mode))
+
+;; --- Projectile Configuration ---
+(after! projectile
+  (setq projectile-project-search-path '("~/projects" "~/dotfiles"))
+  ;; Hybrid indexing is faster on Linux/openSUSE
+  (setq projectile-indexing-method 'hybrid))
+
+;; --- Module & Secret Loading ---
 (when (file-exists-p! "secret.el" doom-user-dir)
   (load! "secret"))
 
-;; Load module configurations
+;; Modularizing configs for better Dotfile maintenance
 (load! "modules/contacts/config")
 (load! "modules/calendar/config")
 (load! "modules/kanban/config")
-(load! "modules/mindmap/config")
 (load! "modules/roam/config")
-(load! "modules/hydra/config")  ; NEW: Hydra menu system
+(load! "modules/hydra/config")
 
-;; Org-roam keybindings (C-c n prefix)
-(global-set-key (kbd "C-c n f") 'org-roam-node-find)      ; Find node
-(global-set-key (kbd "C-c n i") 'org-roam-node-insert)    ; Insert link
-(global-set-key (kbd "C-c n b") 'org-roam-buffer-toggle)  ; Toggle backlinks
-(global-set-key (kbd "C-c n g") 'org-roam-graph)          ; Graph view
-(global-set-key (kbd "C-c n a") 'org-roam-alias-add)      ; Add alias
-(global-set-key (kbd "C-c n d") 'org-roam-dailies-goto-date)       ; Daily note
-(global-set-key (kbd "C-c n t") 'org-roam-dailies-capture-today)   ; Today's note
-(global-set-key (kbd "C-c n c") 'org-roam-capture)         ; Quick capture
+;; --- Custom File Redirection ---
+;; Keeps this config.el clean from GUI-generated noise
+(setq custom-file (expand-file-name "custom.el" doom-user-dir))
+(when (file-exists-p custom-file)
+  (load custom-file))
+
+;; --- Keybindings ---
+(map! :leader
+      (:prefix ("n" . "notes")
+       :desc "Find node"      "f" #'org-roam-node-find
+       :desc "Insert node"    "i" #'org-roam-node-insert
+       :desc "Capture node"   "c" #'org-roam-capture
+       :desc "Graph"          "g" #'org-roam-graph
+       :desc "Daily today"    "j" #'org-roam-dailies-capture-today)
+      (:prefix ("s" . "search")
+       :desc "Ripgrep Menu"   "R" #'rg-menu))
