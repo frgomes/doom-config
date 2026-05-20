@@ -19,8 +19,11 @@
 
 ;; --- Diagrams and Charts ---
 
+(after! markdown-mode
+  (setq markdown-command "marked"))
+
 ;; This code below requires installation of Vega tools like this:
-;; pnpm add -g vega-lite resvg-cli
+;; pnpm add -g vega-lite resvg-cli 
 (defun my/markdown-vega-view-png ()
   "Extract the Vega/Vega-Lite code block at point, compile to PNG, and display it."
   (interactive)
@@ -97,6 +100,84 @@
   (map! :map markdown-mode-map
         :localleader
         :desc "View Embedded Vega (PNG)" "v" #'my/markdown-vega-view-png))
+
+
+(defvar my/vega-local-tmp-files nil
+  "Tracks local temporary PNG files generated during offline markdown previews.")
+
+(defun my/markdown-filter-compile-vega-blocks (string)
+  "Processor that transforms Vega code blocks in STRING into inline PNG image markdown references."
+  (let ((processed-str string)
+        (start-pos 0))
+    ;; Match markdown code fences labeled vega or vega-lite
+    (while (string-match "^\\([ \t]*\\)```\\(?:vega-lite\\|vega\\)\n\\(\\(?:.\\|\n\\)*?\\)
+```" processed-str start-pos)
+      (let* ((indent (match-string 1 processed-str))
+             (vega-code (match-string 2 processed-str))
+             (svg-file (make-temp-file "emacs-vega-local-" nil ".svg"))
+             (png-file (make-temp-file "emacs-vega-local-" nil ".png"))
+             (replacement-link ""))
+        
+        (push png-file my/vega-local-tmp-files)
+        
+        ;; 1. Process Vega text payload to SVG locally
+        (with-temp-buffer
+          (insert vega-code)
+          (shell-command-on-region (point-min) (point-max) "vl2svg" nil t)
+          (write-region (point-min) (point-max) svg-file nil 'silent))
+        
+        ;; 2. Convert SVG to PNG locally
+        (shell-command (format "resvg-cli %s %s" 
+                               (shell-quote-argument svg-file) 
+                               (shell-quote-argument png-file)))
+        (delete-file svg-file)
+        
+        ;; 3. Create a local file path reference using absolute file protocol paths
+        (setq replacement-link (format "\n%s![Vega Chart](file://%s)\n" indent png-file))
+        
+        (setq processed-str (replace-match replacement-link t t processed-str))
+        (setq start-pos (+ (match-beginning 0) (length replacement-link)))))
+    processed-str))
+
+;; --- Safe Offline Preview Interceptor ---
+
+(defun my/markdown-preview-offline-vega-advice (orig-fun &rest args)
+  "Intercept markdown-preview to process Vega blocks safely without recursion loops."
+  (let* ((original-buffer (current-buffer))
+         (original-file (buffer-file-name))
+         ;; Create a hidden working buffer to shield the original text
+         (working-buf (generate-new-buffer " *markdown-vega-export*")))
+    (unwind-protect
+        (progn
+          ;; 1. Sync the core contents to our export sandbox
+          (with-current-buffer working-buf
+            (insert-buffer-substring-no-properties original-buffer)
+            ;; Enable markdown-mode so internal commands know how to process it
+            (markdown-mode)
+            ;; Fake the file association so 'marked' can find relative assets if needed
+            (setq buffer-file-name original-file)
+            
+            ;; 2. Run the string filter replacement loop inline
+            (let ((modified-text (my/markdown-filter-compile-vega-blocks (buffer-string))))
+              (erase-buffer)
+              (insert modified-text))
+            
+            ;; 3. Execute the actual preview command context inside the sandbox buffer
+            (apply orig-fun args)))
+      
+      ;; 4. Always clean up the hidden background buffer when finished
+      (when (buffer-live-p working-buf)
+        (kill-buffer working-buf)))))
+
+;; Clear out all problematic loop/legacy hooks completely
+(advice-remove 'markdown-standalone #'my/markdown-preview-compile-vega-advice)
+(advice-remove 'grip-get-buffer-string #'my/grip-compile-vega-wrapper)
+(advice-remove 'markdown-compile #'my/markdown-compile-offline-vega-advice)
+(advice-remove 'markdown-preview #'my/markdown-preview-offline-vega-advice)
+
+;; Bind the new safe advice to the preview engine
+(advice-add 'markdown-preview :around #'my/markdown-preview-offline-vega-advice)
+
 
 ;; --- Ripgrep (rg) Configuration ---
 ;; Optimized for mass find/replace and code navigation
