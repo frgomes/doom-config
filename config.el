@@ -118,8 +118,7 @@
         (shell-command (format "export PUPPETEER_ARROW_ARGS='[\"--no-sandbox\", \"--disable-setuid-sandbox\"]'; mmdc -i %s -o %s -b transparent" 
                                (shell-quote-argument mmd-file) 
                                (shell-quote-argument png-file))))
-
-      ;; (delete-file mmd-file)  ; Clean up the input text file safely
+      (delete-file mmd-file)
       
       ;; 3. Native Buffer Presentation
       (let ((buf (get-buffer-create "*Mermaid View*")))
@@ -129,14 +128,16 @@
           (let ((img (create-image png-file 'png nil)))
             (insert-image img))
           (read-only-mode 1))
-        (display-buffer buf)))))
+        (display-buffer buf))
+      (delete-file mmd-file))))
 
 (defun my/markdown-vega-view-png ()
   "Extract the Vega/Vega-Lite code block at point, compile to PNG, and display it."
   (interactive)
   (let ((vega-str nil)
-        (png-file (make-temp-file "emacs-vega-" nil ".png"))
-        (svg-file (make-temp-file "emacs-vega-" nil ".svg")))
+        (vega-file (make-temp-file "emacs-vega-" nil ".json"))
+        (png-file  (make-temp-file "emacs-vega-" nil ".png"))
+        (svg-file  (make-temp-file "emacs-vega-" nil ".svg")))
     
     ;; 1. Context Detection
     (cond
@@ -152,13 +153,19 @@
      
      (t (user-error "Unsupported buffer environment mode")))
 
+
+
     ;; 2. The Core Compilation Pipeline
     (when (and vega-str (not (string-empty-p (string-trim vega-str))))
       (with-temp-buffer
         (insert vega-str)
-        (shell-command-on-region (point-min) (point-max) "vl2svg" nil t)
-        (write-region (point-min) (point-max) svg-file nil 'silent))
-      
+        (write-region (point-min) (point-max) vega-file nil 'silent))
+
+      (shell-command (format "vl2svg %s %s" 
+                             (shell-quote-argument vega-file) 
+                             (shell-quote-argument svg-file)))
+      (delete-file vega-file)
+
       (shell-command (format "resvg-cli %s %s" 
                              (shell-quote-argument svg-file) 
                              (shell-quote-argument png-file)))
@@ -172,7 +179,8 @@
           (let ((img (create-image png-file 'png nil)))
             (insert-image img))
           (read-only-mode 1))
-        (display-buffer buf)))))
+        (display-buffer buf))
+      (delete-file png-file))))
 
 (after! json-mode
   (map! :map json-mode-map
