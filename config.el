@@ -17,62 +17,145 @@
 (after! unicode-fonts
   (unicode-fonts-setup))
 
+
 ;; --- Diagrams and Charts ---
 
 (after! markdown-mode
   (setq markdown-command "marked"))
 
-;; This code below requires installation of Vega tools like this:
-;; pnpm add -g vega-lite resvg-cli 
-(defun my/markdown-vega-view-png ()
-  "Extract the Vega/Vega-Lite code block at point, compile to PNG, and display it."
+(defun my/extract-inner-mermaid-block ()
+  "Extract and return the raw inner text of the fenced Mermaid block at point."
   (interactive)
-  (let ((json-str nil)
-        (png-file (make-temp-file "emacs-vega-" nil ".png"))
-        (svg-file (make-temp-file "emacs-vega-" nil ".svg")))
+  (let ((orig-point (point))
+        block-start block-end)
+    (save-excursion
+      ;; 1. Locate the inner block start (scan upward)
+      (goto-char orig-point)
+      (end-of-line) ; Ensures match if cursor is sitting on the opening fence line itself
+      (if (re-search-backward "^[ \t]*```mermaid[ \t]*$" nil t)
+          (progn
+            (forward-line 1)
+            (beginning-of-line)
+            (setq block-start (point)))
+        (user-error "Could not find matching opening ```mermaid fence"))
+
+      ;; 2. Locate the inner block end (scan downward)
+      (goto-char orig-point)
+      (forward-line 1)
+      (if (re-search-forward "^[ \t]*```[ \t]*$" nil t)
+          (progn
+            (beginning-of-line)
+            (setq block-end (point)))
+        (user-error "Could not find matching closing ``` fence"))
+
+      ;; 3. Extract and return the clean string payload
+      (if (and block-start block-end (< block-start block-end))
+          (let ((inner-content (buffer-substring-no-properties block-start block-end)))
+            (message "Successfully extracted inner Mermaid block.")
+            inner-content)
+        (user-error "Calculated block markers are invalid or empty")))))
+
+(defun my/extract-inner-vega-block ()
+  "Extract and return the raw inner text of the fenced Vega block at point."
+  (interactive)
+  (let ((orig-point (point))
+        block-start block-end)
+    (save-excursion
+      ;; 1. Locate the inner block start (scan upward)
+      (goto-char orig-point)
+      (end-of-line) ; Ensures match if cursor is sitting on the opening fence line itself
+      (if (re-search-backward "^[ \t]*```\\(?:vega-lite\\|vega\\)[ \t]*$" nil t)
+          (progn
+            (forward-line 1)
+            (beginning-of-line)
+            (setq block-start (point)))
+        (user-error "Could not find matching opening ```vega fence"))
+
+      ;; 2. Locate the inner block end (scan downward)
+      (goto-char orig-point)
+      (forward-line 1)
+      (if (re-search-forward "^[ \t]*```[ \t]*$" nil t)
+          (progn
+            (beginning-of-line)
+            (setq block-end (point)))
+        (user-error "Could not find matching closing ``` fence"))
+
+      ;; 3. Extract and return the clean string payload
+      (if (and block-start block-end (< block-start block-end))
+          (let ((inner-content (buffer-substring-no-properties block-start block-end)))
+            (message "Successfully extracted inner Vega block.")
+            inner-content)
+        (user-error "Calculated block markers are invalid or empty")))))
+
+(defun my/markdown-mermaid-view-png ()
+  "Extract the Mermaid/Mermaid-Lite code block at point, compile to PNG, and display it."
+  (interactive)
+  (let ((mermaid-str nil)
+        (png-file (make-temp-file "emacs-mermaid-" nil ".png"))
+        (mmd-file (make-temp-file "emacs-mermaid-" nil ".mmd")))
     
-    ;; 1. Context Detection via Text Properties
+    ;; 1. Context Detection
     (cond
-     ;; Scenario A: Inside a Markdown buffer
+     ;; Scenario A: Inside a Markdown buffer (Using outsourced clean function)
      ((derived-mode-p 'markdown-mode)
       (if (markdown-code-block-at-point-p)
-          (let ((pos (point))
-                block-start block-end)
-            (save-excursion
-              ;; Find the beginning of the fenced block property region
-              (setq block-start (previous-single-property-change (1+ pos) 'face nil (point-min)))
-              ;; Find the end of the fenced block property region
-              (setq block-end (next-single-property-change pos 'face nil (point-max)))
-              
-              (when (and block-start block-end)
-                (goto-char block-start)
-                ;; If sitting on the opening backticks line, skip past it to inner JSON
-                (when (looking-at "^[ \t]*```")
-                  (forward-line 1)
-                  (setq block-start (point)))
-                
-                (goto-char block-end)
-                ;; If sitting on the closing backticks line, back up to clean line end
-                (beginning-of-line)
-                (when (looking-at "^[ \t]*
-```")
-                  (forward-line -1)
-                  (end-of-line)
-                  (setq block-end (point)))
-                
-                (setq json-str (buffer-substring-no-properties block-start block-end)))))
+          (setq mermaid-str (my/extract-inner-mermaid-block))
         (user-error "Cursor is not pointing inside a code block")))
      
-     ;; Scenario B: Fallback to pure JSON buffer logic
-     ((derived-mode-p 'json-mode)
-      (setq json-str (buffer-substring-no-properties (point-min) (point-max))))
+     ;; Scenario B: Fallback to pure mermaid buffer logic
+     ((derived-mode-p 'mermaid-mode)
+      (setq mermaid-str (buffer-substring-no-properties (point-min) (point-max))))
      
      (t (user-error "Unsupported buffer environment mode")))
 
     ;; 2. The Core Compilation Pipeline
-    (when (and json-str (not (string-empty-p (string-trim json-str))))
+    (when (and mermaid-str (not (string-empty-p (string-trim mermaid-str))))
       (with-temp-buffer
-        (insert json-str)
+        (insert mermaid-str)
+        (write-region (point-min) (point-max) mmd-file nil 'silent))
+      
+      (let ((shell-command-switch "-ic"))
+        (shell-command (format "export PUPPETEER_ARROW_ARGS='[\"--no-sandbox\", \"--disable-setuid-sandbox\"]'; mmdc -i %s -o %s -b transparent" 
+                               (shell-quote-argument mmd-file) 
+                               (shell-quote-argument png-file))))
+
+      ;; (delete-file mmd-file)  ; Clean up the input text file safely
+      
+      ;; 3. Native Buffer Presentation
+      (let ((buf (get-buffer-create "*Mermaid View*")))
+        (with-current-buffer buf
+          (read-only-mode -1)
+          (erase-buffer)
+          (let ((img (create-image png-file 'png nil)))
+            (insert-image img))
+          (read-only-mode 1))
+        (display-buffer buf)))))
+
+(defun my/markdown-vega-view-png ()
+  "Extract the Vega/Vega-Lite code block at point, compile to PNG, and display it."
+  (interactive)
+  (let ((vega-str nil)
+        (png-file (make-temp-file "emacs-vega-" nil ".png"))
+        (svg-file (make-temp-file "emacs-vega-" nil ".svg")))
+    
+    ;; 1. Context Detection
+    (cond
+     ;; Scenario A: Inside a Markdown buffer (Using outsourced clean function)
+     ((derived-mode-p 'markdown-mode)
+      (if (markdown-code-block-at-point-p)
+          (setq vega-str (my/extract-inner-vega-block))
+        (user-error "Cursor is not pointing inside a code block")))
+     
+     ;; Scenario B: Fallback to pure JSON buffer logic
+     ((derived-mode-p 'json-mode)
+      (setq vega-str (buffer-substring-no-properties (point-min) (point-max))))
+     
+     (t (user-error "Unsupported buffer environment mode")))
+
+    ;; 2. The Core Compilation Pipeline
+    (when (and vega-str (not (string-empty-p (string-trim vega-str))))
+      (with-temp-buffer
+        (insert vega-str)
         (shell-command-on-region (point-min) (point-max) "vl2svg" nil t)
         (write-region (point-min) (point-max) svg-file nil 'silent))
       
@@ -99,84 +182,109 @@
 (after! markdown-mode
   (map! :map markdown-mode-map
         :localleader
-        :desc "View Embedded Vega (PNG)" "v" #'my/markdown-vega-view-png))
+        :desc "View Embedded Vega (PNG)"    "v" #'my/markdown-vega-view-png
+        :desc "View Embedded Mermaid (PNG)" "d" #'my/markdown-mermaid-view-png))
 
+(defvar my/markdown-local-tmp-files nil
+  "Tracks all local temporary PNG files generated during offline markdown previews.")
 
-(defvar my/vega-local-tmp-files nil
-  "Tracks local temporary PNG files generated during offline markdown previews.")
-
-(defun my/markdown-filter-compile-vega-blocks (string)
-  "Processor that transforms Vega code blocks in STRING into inline PNG image markdown references."
+(defun my/markdown-filter-compile-embedded-blocks (string)
+  "Processor that transforms both Vega and Mermaid code blocks into inline PNG references."
   (let ((processed-str string)
         (start-pos 0))
-    ;; Match markdown code fences labeled vega or vega-lite
-    (while (string-match "^\\([ \t]*\\)```\\(?:vega-lite\\|vega\\)\n\\(\\(?:.\\|\n\\)*?\\)
-```" processed-str start-pos)
+    
+    ;; ==========================================
+    ;; LOOP 1: Process Vega & Vega-Lite Blocks
+    ;; ==========================================
+    (while (string-match "^\\([ \t]*\\)```\\(?:vega-lite\\|vega\\)\n\\(\\(?:.\\|\n\\)*?\\)```" processed-str start-pos)
       (let* ((indent (match-string 1 processed-str))
              (vega-code (match-string 2 processed-str))
              (svg-file (make-temp-file "emacs-vega-local-" nil ".svg"))
              (png-file (make-temp-file "emacs-vega-local-" nil ".png"))
              (replacement-link ""))
         
-        (push png-file my/vega-local-tmp-files)
+        (push png-file my/markdown-local-tmp-files)
         
-        ;; 1. Process Vega text payload to SVG locally
+        ;; Compile Vega JSON to SVG
         (with-temp-buffer
           (insert vega-code)
           (shell-command-on-region (point-min) (point-max) "vl2svg" nil t)
           (write-region (point-min) (point-max) svg-file nil 'silent))
         
-        ;; 2. Convert SVG to PNG locally
+        ;; Render SVG to high-res PNG
         (shell-command (format "resvg-cli %s %s" 
                                (shell-quote-argument svg-file) 
                                (shell-quote-argument png-file)))
         (delete-file svg-file)
         
-        ;; 3. Create a local file path reference using absolute file protocol paths
         (setq replacement-link (format "\n%s![Vega Chart](file://%s)\n" indent png-file))
-        
         (setq processed-str (replace-match replacement-link t t processed-str))
         (setq start-pos (+ (match-beginning 0) (length replacement-link)))))
+
+    ;; Reset cursor position for the second parsing engine sweep
+    (setq start-pos 0)
+
+    ;; ==========================================
+    ;; LOOP 2: Process Mermaid Syntax Blocks
+    ;; ==========================================
+    (while (string-match "^\\([ \t]*\\)```mermaid\n\\(\\(?:.\\|\n\\)*?\\)
+```" processed-str start-pos)
+      (let* ((indent (match-string 1 processed-str))
+             (mermaid-code (match-string 2 processed-str))
+             (tmp-mmd-file (make-temp-file "emacs-mermaid-local-" nil ".mmd"))
+             (png-file (make-temp-file "emacs-mermaid-local-" nil ".png"))
+             (replacement-link ""))
+        
+        (push png-file my/markdown-local-tmp-files)
+        
+        ;; Save raw text block context to a temporary definition layout file
+        (with-temp-buffer
+          (insert mermaid-code)
+          (write-region (point-min) (point-max) tmp-mmd-file nil 'silent))
+        
+        ;; Execute the local mermaid-cli binary pipeline tool natively
+        ;; Note: We set background transparent (-b transparent) to cleanly blend with browser theme modes
+        (shell-command (format "mmdc -i %s -o %s -b transparent" 
+                               (shell-quote-argument tmp-mmd-file) 
+                               (shell-quote-argument png-file)))
+        (delete-file tmp-mmd-file)
+        
+        (setq replacement-link (format "\n%s![Mermaid Chart](file://%s)\n" indent png-file))
+        (setq processed-str (replace-match replacement-link t t processed-str))
+        (setq start-pos (+ (match-beginning 0) (length replacement-link)))))
+
     processed-str))
 
-;; --- Safe Offline Preview Interceptor ---
+;; --- Safe Offline Preview Interceptor Engine ---
 
-(defun my/markdown-preview-offline-vega-advice (orig-fun &rest args)
-  "Intercept markdown-preview to process Vega blocks safely without recursion loops."
+(defun my/markdown-preview-offline-embedded-advice (orig-fun &rest args)
+  "Intercept markdown-preview to process both Vega and Mermaid blocks safely inside a clean workspace container."
   (let* ((original-buffer (current-buffer))
          (original-file (buffer-file-name))
-         ;; Create a hidden working buffer to shield the original text
-         (working-buf (generate-new-buffer " *markdown-vega-export*")))
+         (working-buf (generate-new-buffer " *markdown-embedded-export*")))
     (unwind-protect
         (progn
-          ;; 1. Sync the core contents to our export sandbox
           (with-current-buffer working-buf
             (insert-buffer-substring-no-properties original-buffer)
-            ;; Enable markdown-mode so internal commands know how to process it
             (markdown-mode)
-            ;; Fake the file association so 'marked' can find relative assets if needed
             (setq buffer-file-name original-file)
             
-            ;; 2. Run the string filter replacement loop inline
-            (let ((modified-text (my/markdown-filter-compile-vega-blocks (buffer-string))))
+            ;; Execute the dual-loop text transformer sequence
+            (let ((modified-text (my/markdown-filter-compile-embedded-blocks (buffer-string))))
               (erase-buffer)
               (insert modified-text))
             
-            ;; 3. Execute the actual preview command context inside the sandbox buffer
             (apply orig-fun args)))
       
-      ;; 4. Always clean up the hidden background buffer when finished
       (when (buffer-live-p working-buf)
         (kill-buffer working-buf)))))
 
-;; Clear out all problematic loop/legacy hooks completely
-(advice-remove 'markdown-standalone #'my/markdown-preview-compile-vega-advice)
-(advice-remove 'grip-get-buffer-string #'my/grip-compile-vega-wrapper)
-(advice-remove 'markdown-compile #'my/markdown-compile-offline-vega-advice)
+;; Tear down old single-loop filter bindings completely
 (advice-remove 'markdown-preview #'my/markdown-preview-offline-vega-advice)
+(advice-remove 'markdown-preview #'my/markdown-preview-offline-embedded-advice)
 
-;; Bind the new safe advice to the preview engine
-(advice-add 'markdown-preview :around #'my/markdown-preview-offline-vega-advice)
+;; Attach the new multi-engine pipeline to the preview handler
+(advice-add 'markdown-preview :around #'my/markdown-preview-offline-embedded-advice)
 
 
 ;; --- Ripgrep (rg) Configuration ---
